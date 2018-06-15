@@ -163,7 +163,7 @@ bot.on("message", async message => {
     =================================================
     */
     if(command === "bet") {
-        const host = message.sender;
+        const host = message.author;
         const server = message.guild.id;
         let choice1 = args[0].toLowerCase();
         let choice2 = args[1].toLowerCase();
@@ -187,9 +187,9 @@ bot.on("message", async message => {
             //Error Checking
             console.log(`Current points: ${currentPoints}`);
             if(args[0] !== choice1 && args[0] !== choice2) return console.log(`${args[0]} doesn't equal either ${choice1} or ${choice2}`);
+            else if(parseInt(args[1]) < 1) return console.log("args[1] < 1");
             else if(isNaN(args[1])) return console.log(`${args[1]} is not a number.`);
             else if(parseInt(args[1]) > currentPoints) return console.log("args[1] > currentPoints");
-            else if(parseInt(args[1]) < 1) return console.log("args[1] < 1");
             //Look for correct responses    `choice1 300`
             if(msg.includes(choice1)) {
                 if(unique.includes(response.author.id)) {
@@ -199,10 +199,9 @@ bot.on("message", async message => {
                     unique.push(response.author.id);
                 }
                 count1 += 1;
-                num1 = num1 + parseInt(args[1]);
                 better.push(response.member.id);
                 better.push(args[0]);
-                better.push(args[1]);
+                better.push(parseInt(args[1]));
                 console.log(better);
                 return better[1];
             }
@@ -214,39 +213,46 @@ bot.on("message", async message => {
                     unique.push(response.author.id);
                 }
                 count2 += 1;
-                num2 = num2 + parseInt(args[1]);
                 better.push(response.member.id);
                 better.push(args[0]);
-                better.push(args[1]);
+                better.push(parseInt(args[1]));
                 console.log(better);
                 return better[1];
             }
         }, {time: 5000});
         if(count1 === 0 || count2 === 0) return message.channel.send("One of the options has no betters. Please try again.");
         message.channel.send(`Betting complete. Users that bet:`);
-        msgs.map(msg => {
-            let str = msg.content.trim().split(/ +/g);
-            let choice = str[0].charAt(0).toUpperCase() + str[0].slice(1);
-            message.channel.send(`${msg.member} - Bet: ${str[1]} TSMSBucks on ${choice}`);
-        });
         let paid = 0;
-
+        
         let sortedCollection = msgs.sort(function(a,b) {
             return a.createdTimestamp < b.createdTimestamp;
         });
         console.log(sortedCollection);
         console.log(`IDS FOR UNIQUE: ${unique}`);
-
+        
         sortedCollection = sortedCollection.filter(message => {
+            let tempArgs = message.content.slice(config.prefix.length).trim().split(/ +/g);
             let sender = message.author.id;
             console.log(`SENDER: ${sender}`);
             if(unique.includes(sender)) {
+                if(message.content.includes(choice1)) {
+                    num1 = num1 + parseInt(tempArgs[1]);
+                }
+                else if(message.content.includes(choice2)) {
+                    num2 = num2 + parseInt(tempArgs[1]);
+                }
                 unique.pop(sender);
                 return true;
             }
             return false;
         });
         console.log(sortedCollection);
+
+        sortedCollection.map(msg => {
+            let str = msg.content.trim().split(/ +/g);
+            let choice = str[0].charAt(0).toUpperCase() + str[0].slice(1);
+            message.channel.send(`${msg.member} - Bet: ${parseInt(str[1])} TSMSBucks on ${choice}`);
+        });
 
         /*
         uniqueCollection = msgs.filter(message => {
@@ -278,9 +284,9 @@ bot.on("message", async message => {
 
 
        console.log(`HOST: ${host}`);
-        const collector = new Discord.MessageCollector(message.channel, m=> m.sender === host, { time: 60000 });
+        const collector = new Discord.MessageCollector(message.channel, m=> m.author === host, { time: 60000 });
         collector.on('collect', response => {
-            if(response.content.startsWith("!payout") && response.sender === host) {
+            if(response.content.startsWith("!payout") && response.author === host) {
                 console.log(`SENDER: ${sender}`)
                 let args = response.content.trim().split(/ +/g);
                 console.log("Beginning payout!");
@@ -406,7 +412,7 @@ bot.on("message", async message => {
         message.delete().catch(O_o=>{});
         return;
     }
-
+/*
     if(command === "jail") {
         let jailee = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
         if(!jailee) return message.channel.send("Couldn't find the victim.");
@@ -429,7 +435,7 @@ bot.on("message", async message => {
         jailchannel.send(jailEmbed)
         return;
     }
-
+*/
     if(command === "botinfo") {
         let icon = bot.user.displayAvatarURL;
         let botembed = new Discord.RichEmbed()
