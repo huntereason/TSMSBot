@@ -32,9 +32,11 @@ bot.on("presenceUpdate", (oldMember, newMember) => {
     console.log(`ROLE: ${role}`);
     if(newMember.presence.game === null) {
         if(!newMember.roles.exists("name","lobby")) return;
-        console.log("Removing role.")
-        newMember.removeRole(role);
-        return;
+        if(oldMember.presence.game === "Rivals of Aether") {
+            console.log("Removing role.")
+            newMember.removeRole(role);
+            return;
+        }
     }
     else if(newMember.presence.game.name === "Rivals of Aether") {
         if(newMember.roles.exists("name","lobby"))  return;
@@ -44,9 +46,11 @@ bot.on("presenceUpdate", (oldMember, newMember) => {
     }
     else {
         if(!newMember.roles.exists("name","lobby")) return;
-        console.log("Removing role.")
-        newMember.removeRole(role);
-        return;
+        if(oldMember.presence.game === "Rivals of Aether") {
+            console.log("Removing role.")
+            newMember.removeRole(role);
+            return;
+        }
     }
     //if(oldMember.presense.game)
 });
@@ -163,6 +167,7 @@ bot.on("message", async message => {
     =================================================
     */
     if(command === "bet") {
+        if(!(sender.id === "151790361746997248")) return;
         const host = message.author;
         const server = message.guild.id;
         let choice1 = args[0].toLowerCase();
@@ -353,16 +358,31 @@ bot.on("message", async message => {
     */
     if(command === "lobby") {
         let role = message.guild.roles.find("name", "lobby");
+        let consent = message.guild.roles.find("name", "consensual lobby");
         if(sender.roles.exists("name","lobby")) {
-            console.log("Removing.");
+            console.log("Removing lobby.");
             sender.removeRole(role);
             message.delete().catch(O_o=>{});
             return;
         }
-        console.log("Adding!");
-        sender.addRole(role);
-        message.delete().catch(O_o=>{});
-        return;
+        else {
+            console.log("Adding lobby!");
+            sender.addRole(role);
+            message.delete().catch(O_o=>{});
+            return;
+        }
+        if(sender.roles.exists("name","consensual lobby")) {
+            console.log("Removing consensual lobby.");
+            sender.removeRole(role);
+            message.delete().catch(O_o=>{});
+            return;
+        }
+        else {
+            console.log("Adding consensual lobby!");
+            sender.addRole(consent);
+            message.delete().catch(O_o=>{});
+            return;
+        }
     }
 
     /*
